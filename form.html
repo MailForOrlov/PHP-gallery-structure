@@ -2,16 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test Form</title>
+    <title>Add Picture</title>
 </head>
 <body>
-    <h1>Add Picture</h1>
-    <form method="POST" action="insert_data.php">
+    <h2>Add Picture</h2>
+    <form action="insert_data.php" method="POST">
         <label for="gallery_name">Gallery Name:</label>
         <input type="text" id="gallery_name" name="gallery_name" required><br>
 
         <label for="picture_name">Picture Name:</label>
         <input type="text" id="picture_name" name="picture_name" required><br>
+
+	<label for="date_of_creation">Date of creation</label>
+	<input type="text" id="date_of_creation" name="date_of_creation"><br>
+
+	<label for="size">Size(e.g., 40x25 cm):</label>
+	<input type="data" id="date of creation" name="size"><br>
+	<label for="price">Price:</label>
+	<input type="text" id="price" name="price"><br>
 
         <button type="submit">Add Picture</button>
     </form>

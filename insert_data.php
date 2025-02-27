@@ -1,39 +1,54 @@
 <?php
-// enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Database connection
-$servername = "localhost";
-$username = "new_admin";
-$password = "A422056153a@";
-$database = "ChloeDatabase";
-
-$conn = new mysqli($servername, $username, $password, $database);
-
-//Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+require 'connect.php';
 
 //Check if form was submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-	$gallery_name = $conn->real_escape_string($_POST['gallery_name']);
-	$picture_name = $conn->real_escape_string($_POST['picture_name']);
-	$date_of_creation = date('Y-m-d'); //default to today for now
-	$size = "40x25"; //Placeholder until we add size input
-	$price = 100; //Placeholder until we add price input
+	$gallery_name = trim($_POST['gallery_name']);
+	$picture_name = trim($_POST['picture_name']);
+	$date_of_creation = trim($_POST['date_of_creation']);
+	$size = trim($_POST['size']);
+	$price = trim($_POST['price']);
+	
+	//validation
+	$errors = [];
 
+	//Validate date (YYYY-MM-DD format)
+	if (!empty($date_of_creation) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_of_creation)) {
+		$errors[] = "Invalid date format. Use YYYY-MM-DD.";
+	}
+	//Validate size (like 40x25)
+	if (!preg_match('/^\d+x\d+$/', $size)) {
+		$errors[] = "Invalid size format. Use format like 40x25.";
+}
+	//Validate price (decimal format)
+	if (!filter_var($price, FILTER_VALIDATE_FLOAT)) {
+		$errors[] = "Invalid price format. Use a number like 19.99.";
+}
+
+if (empty($errors)) {
 	//insert data into pictures table
-	$sql = "INSERT INTO pictures (name, date_of_creation, size, price, gallery_id)
-		VALUES ('$picture_name', '$date_of_creation', '$size', '$price', (SELECT id FROM galleries WHERE name = '$gallery_name' LIMIT 1))";
+	$sql = "INSERT INTO pictures (gallery_id, name, date_of_creation, size, price) VALUES
+		((SELECT id FROM galleries WHERE name = ?), ?, ?, ?, ?)";
 
-	if ($conn->query($sql) === TRUE) {
-		echo "New picture added successfully!";
+	$stmt = $conn->prepare($sql);
+	$stmt->bind_param("ssssd", $gallery_name, $picture_name, $date_of_creation, $size, $price);
+
+	if ($stmt->execute()) {
+		echo "New record added successfully!";
 	} else {
-		echo "Error: " . $conn->error;
+		echo "Error: " . $stmt->error;
+	}
+
+	$stmt->close();
+	} else {
+		//show validation errors
+		foreach ($errors as $error) {
+			echo "<p style='color: red;'>$error</p>";
+		}
 	}
 }
+
+
 $conn->close();
 ?>
 
