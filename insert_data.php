@@ -1,6 +1,8 @@
 <?php
-require 'connect.php';
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+require 'connect.php';
 //Check if form was submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	$gallery_name = trim($_POST['gallery_name']);
@@ -26,12 +28,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 if (empty($errors)) {
+	$sql = "insert INTO galleries (name)
+		SELECT * FROM (SELECT ?) AS tmp 
+		WHERE NOT EXISTS (
+			SELECT name FROM galleries WHERE name = ?) LIMIT 1";
+
+	$stmt = $conn->prepare($sql);
+	$stmt->bind_param("ss", $gallery_name, $gallery_name);
+	$stmt->execute();
+	$stmt->close();
 	//insert data into pictures table
 	$sql = "INSERT INTO pictures (gallery_id, name, date_of_creation, size, price) VALUES
 		((SELECT id FROM galleries WHERE name = ?), ?, ?, ?, ?)";
 
 	$stmt = $conn->prepare($sql);
-	$stmt->bind_param("ssssd", $gallery_name, $picture_name, $date_of_creation, $size, $price);
+	$stmt->bind_param("sssss", $gallery_name, $picture_name, $date_of_creation, $size, $price);
 
 	if ($stmt->execute()) {
 		echo "New record added successfully!";

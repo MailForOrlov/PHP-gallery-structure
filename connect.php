@@ -4,9 +4,9 @@ $dbname = 'ChloeDatabase';
 $user = 'new_admin';
 $pass = 'A422056153a@';
 
-$db = new mysqli($host, $user, $pass, $dbname);
+$conn = new mysqli($host, $user, $pass, $dbname);
 
-if ($db->connect_error) {
+if ($conn->connect_error) {
 	die("Connection failed: " . $db->connect_error);
 }
 ?>
