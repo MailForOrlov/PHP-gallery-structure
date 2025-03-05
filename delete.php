@@ -2,29 +2,26 @@
 require 'connect.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-	if (!empty($_POST['delete_gallery'])) {
-		// Delete gallery and its pictures
-		$gallery_name = $conn->real_escape_string($_POST['delete_gallery']);
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_picture'])) {
+	$picture_name = $_POST['delete_picture'];
+	echo "Picture to delete: " . htmlspecialchars($picture_name);
 
-		//First, delete pictures tied to the gallery
-		$conn->query("DELETE FROM pictures WHERE gallery_id = (SELECT id FROM galleries WHERE name = '$gallery_name')");
-		//Then, delete the gallery itself
-		$conn->query("DELETE FROM galleries WHERE name = '$gallery_name'");
-		echo "Gallery and its pictures deleted successfully!";
-	}
+	$sql = "DELETE FROM pictures WHERE name = ?";
+	$stmt = $conn->prepare($sql);
+	$stmt->bind_param("s", $picture_name);
 
-	if (!empty($_POST['delete_pictures'])) {
-		//Delete picture by name
-		$picture_name = $conn->real_escape_string($_POST['delete_picture']);
-		$conn->query("DELETE FROM pictures WHERE name = '$picture_name'");
+	if ($stmt->execute()) {
 		echo "Picture deleted successfully!";
+	} else {
+		echo "Error deleting picture: " . $stmt->error;
 	}
+
+	$stmt->close();
+	$conn->close();
+
+	header("Location: display_data.php");
+	exit();
+} else {
+	echo "Invalid request!";
 }
-
-$conn->close();
-
-//Redirect back to dysplay_data.php
-header("Location: display_data.php");
-exit();
 ?>
